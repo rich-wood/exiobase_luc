@@ -63,35 +63,38 @@ for yr in range(2005,2019):
     q_df=(s).dot(L) # run with dataframes
     q_df.to_csv('Multipliers_'+ str(yr) +'.csv')
     
-    # now run with disaggregated stressors by origin country/sector - need to diagonalise the extensions, and thus loop over each extension.
+    if yr == 2018:
+        # test for 2018 data (ensure same answer across both versions of extension data)
+        s2018=pymrio.calc_S(df2018.T, x)
+        # check both methods (numpy vs pandas)
+        q2018_np=np.dot(s2018,L) #test with numpy
+        q2018_df=s2018.dot(L) # run with dataframes
+        sum(sum(abs(q2018_np-q2018_df.values))) # answer should be zero if no problems        
+        sum(sum(abs(q2018_np-q_df.values))) # answer should be zero if no problems - there is a small residual
+        q2018_df.to_csv('Multipliers_2018src.csv')
     
+    
+    
+    # now run with disaggregated stressors by origin country/sector - need to diagonalise the extensions, and thus loop over each extension.
     for dftype in df_yr_full.index:    
         
-        
+        # diagonalise the stressor intensities, one at a time
         s_diag = pd.DataFrame(
             index=s.columns,
             columns=s.columns,
             data=np.diag(s.loc[dftype])        )
         
-        
-        q_disagg_df=s_diag.dot(L)
+        # remove zero rows (no deforestation occurs in that sector region combo)
+        tmp_indx= (s_diag!= 0).any(axis=1)
+        s_diag_nz=s_diag.loc[tmp_indx]
+
+        # calculate disaggregated multipliers
+        q_disagg_df=s_diag_nz.dot(L)
         
         #save disaggregated data after dropping zero rows
-        tmp_indx= (q_disagg_df!= 0).any(axis=1)
-        q_disagg_df_nz=q_disagg_df.loc[tmp_indx]
-        q_disagg_df_nz.to_csv('Multipliers_origin_'+ str(yr) +'_'+dftype +'.csv')
+        q_disagg_df.to_csv('Multipliers_origin_'+ str(yr) +'_'+dftype +'.csv')
         
-        if yr == 2018:
-            # test for 1 year first
-            # s2018=df2018.Deforestation_area_ha.transpose()
-            s2018=pymrio.calc_S(df2018.T, x)
-            # check both methods (numpy vs pandas)
-            q2018_np=np.dot(s2018,L) #test with numpy
-            q2018_df=s2018.dot(L) # run with dataframes
-            sum(sum(abs(q2018_np-q2018_df.values))) # answer should be zero if no problems        
-            sum(sum(abs(q2018_np-q_df.values))) # answer should be zero if no problems - there is a small residual
-        
-            q2018_df.to_csv(dftype+'_' +'Multipliers_2018src.csv')
+
         
 
                 
