@@ -94,7 +94,7 @@ for yr in range(2005,2019):
         m2018_df=s2018.dot(L) # run with dataframes
         sum(sum(abs(m2018_np-m2018_df.values))) # answer should be zero if no problems        
         sum(sum(abs(m2018_np-m.values))) # answer should be zero if no problems - there is a small residual
-        m2018_df.to_csv('Multipliers_2018src.csv')
+        #m2018_df.to_csv('Multipliers_2018src.csv')
     
     
     
